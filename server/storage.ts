@@ -240,4 +240,23 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use Supabase storage when DATABASE_URL is available, otherwise use in-memory
+let storage: IStorage;
+
+if (process.env.DATABASE_URL) {
+  try {
+    console.log('Attempting to use Supabase storage...');
+    const { SupabaseStorage } = require('./storage-supabase');
+    storage = new SupabaseStorage();
+    console.log('✅ Successfully connected to Supabase!');
+  } catch (error) {
+    console.log('❌ Supabase storage not available, using in-memory storage');
+    console.log('Error:', error instanceof Error ? error.message : String(error));
+    storage = new MemStorage();
+  }
+} else {
+  console.log('No DATABASE_URL found, using in-memory storage');
+  storage = new MemStorage();
+}
+
+export { storage };
